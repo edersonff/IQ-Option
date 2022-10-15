@@ -12,20 +12,18 @@ class Vision:
 
     # constructor
     def __init__(self, needle_img_path, method=cv.TM_CCOEFF_NORMED):
-        # load the image we're trying to match
-        # https://docs.opencv.org/4.2.0/d4/da8/group__imgcodecs.html
         self.needle_img = cv.imread(needle_img_path, cv.IMREAD_UNCHANGED)
 
-        # Save the dimensions of the needle image
         self.needle_w = self.needle_img.shape[1]
         self.needle_h = self.needle_img.shape[0]
 
-        # There are 6 methods to choose from:
-        # TM_CCOEFF, TM_CCOEFF_NORMED, TM_CCORR, TM_CCORR_NORMED, TM_SQDIFF, TM_SQDIFF_NORMED
         self.method = method
 
     def find(self, haystack_img, threshold=0.5, debug_mode=None):
-        result = cv.matchTemplate(haystack_img, self.needle_img, self.method)
+        haystack_img = cv.cvtColor(haystack_img, cv.COLOR_BGR2GRAY)
+        needle_img = cv.cvtColor(self.needle_img, cv.COLOR_BGR2GRAY)
+
+        result = cv.matchTemplate(haystack_img, needle_img, self.method)
 
         locations = np.where(result >= threshold)
         locations = list(zip(*locations[::-1]))
@@ -37,8 +35,6 @@ class Vision:
             rectangles.append(rect)
         rectangle, weights = cv.groupRectangles(rectangles, groupThreshold=1, eps=0.5)
 
-        if(len(weights) == 2):
-            [x,y] = weights
-            return y
-        else:
-            return 0
+        if len(rectangle):
+            return rectangle[0]
+        return [0,0]

@@ -22,7 +22,6 @@ class WindowCapture:
         window_rect = win32gui.GetWindowRect(self.hwnd)
         self.w = window_rect[2] - window_rect[0]
         self.h = window_rect[3] - window_rect[1]
-        self.w += 1000
 
         border_pixels = 8
         titlebar_pixels = 30
@@ -33,6 +32,9 @@ class WindowCapture:
 
         self.offset_x = window_rect[0] + self.cropped_x
         self.offset_y = window_rect[1] + self.cropped_y
+        
+        self.w += 2000
+        self.h += 1000
 
     def get_screenshot(self):
 

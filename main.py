@@ -1,6 +1,7 @@
 import cv2
 from windowCapture import WindowCapture
 from vision import Vision
+from excel import excel
 import xlsxwriter
 import keyboard
 import time
@@ -8,60 +9,42 @@ import datetime
 
 wincap = WindowCapture('IQ Option')
 vision_dot = Vision('dot.jpg')
-last = count = globalCount = 0
-workbook = xlsxwriter.Workbook('hello.xlsx')
-worksheet = workbook.add_worksheet()
+vision_chegada = Vision('chegada.jpg')
+last = sumLast = 0 
+globalCount = 1
 arr = []
-letter = 'A'
 
-def charac(word):
-    wordConveted = ""
-    invertedWord = word[::-1]
+excelT = excel('trade.xlsx')
 
-    numeric = -1
-    for i, charac in enumerate(invertedWord):
-        if i-1 == numeric:
-            if charac == "Z":
-                if(i == len(invertedWord)-1):
-                    wordConveted += "A"
-                numeric = i
-                wordConveted += chr( ord(charac)-25 )
-            else:
-                wordConveted += chr( ord(charac) + 1 )
-        else:
-            wordConveted += charac
-
-
-    return wordConveted[::-1]
-    
-
-timeout = 0;
+waitTimeout = 0.15
+timeout = 0
+chegada = True
 while True:
-    screenshot = wincap.get_screenshot()
-
-    now = vision_dot.find(screenshot, 0.5, 'rectangles')
-
+    # try:
     if timeout < time.time():
-        timeout = time.time() + 0.25
-        count += 1
-        print(now)
+        screenshot = wincap.get_screenshot()
+
+        now = vision_dot.find(screenshot, 0.5, 'rectangles')[1]
+        chegadaPos = vision_chegada.find(screenshot, 0.5, 'rectangles')[0]
+
+        print(chegadaPos)
+        timeout = time.time() + waitTimeout
         arr.append(last-now)
         arr.append(datetime.datetime.now())
         last = now
-        print(count)
-        if count == 10:
-            key = 0
-            for ar in arr:
-                print("Saved "+letter+str(globalCount))
-                worksheet.write(letter + str(globalCount), ar)
-                letter = charac(letter)
-                key += 1
-            globalCount += 1
-            letter = 'A'
+        if chegadaPos == 0 and chegada == False:
+            chegada = True
+            arr.append(sumLast)
+            arr.append(waitTimeout)
+            sumLast = excelT.write(arr)
             arr = []
-            count = 0
+        elif chegadaPos != 0 and chegada == True:
+            chegada = False
+
     if keyboard.is_pressed('q'):
-        workbook.close()
-        cv2.destroyAllWindows()
         break
-        
+    # except:
+    #     break
+    
+excelT.workbook.close()
+cv2.destroyAllWindows()
