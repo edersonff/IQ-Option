@@ -37,8 +37,8 @@ class Vision:
             rectangles.append(rect)
         rectangle, weights = cv.groupRectangles(rectangles, groupThreshold=1, eps=0.5)
 
-        points = []
-        [rec] = rectangle;
-        if(rec.any()):
-            [x, y, w, h] = rec;
-            return y + int(h/2)
+        if(len(weights) == 2):
+            [x,y] = weights
+            return y
+        else:
+            return 0
